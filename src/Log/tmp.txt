@@ -1,0 +1,7 @@
+this is the last test
+no bug!
+run well!!!
+test a loooooooooooooooooooooooooooooooooooooooong message
+test a short message
+ready to exit
+abcde

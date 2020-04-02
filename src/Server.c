@@ -60,7 +60,7 @@ int main()
     FILE* flog = fopen(LISTEN_LOG, "wb");
     while(!isExit){
         /*
-         * loop unitl exit cmd
+         * loop unitl exit cmd( \exit )
          * accept from client, read data and write out
          */
 
@@ -80,16 +80,12 @@ int main()
         while( (readSize = read(Csocket, buff, BUFF_SIZE)) > 0){
             // loop unitl buff read over
 
-            if (isExit = (strstr(buff, "\\exit")!=NULL) ) break;
+            if (isExit = (strstr(buff, "\\exit")!=NULL) ) *strstr(buff, "\\exit") = '\0';
 
             // write(Csocket, buff, readSize);
             printf("%s", buff);
-            for (byte *ptmp = buff; ptmp-buff < readSize; ptmp++){
-                fputc(*ptmp, flog);
-                putchar(*ptmp);
-            }
-
-            fputc('\n', flog);
+            fprintf(flog, "%s", buff);
+            memset(buff, '\0', BUFF_SIZE);
         }
 
         close(Csocket);
