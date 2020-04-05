@@ -1,9 +1,10 @@
-#include<iostream>
-#include<WinSock2.h>
-#include<winsock.h>
-#include<Windows.h>
-#include<string>
-#include<cstring>
+#include <iostream>
+#include <WinSock2.h>
+#include <winsock.h>
+#include <Ws2tcpip.h>
+#include <Windows.h>
+#include <string>
+#include <cstring>
 #include <fstream>
 #include <io.h>
 #pragma comment(lib,"ws2_32.lib")
@@ -18,7 +19,7 @@ char fileName[FILE_LENGTH];
 
 int main() {
 	WSADATA wsa;
-	//使用2.2版本的soket
+	//使用2.2版本的socket
 	if (WSAStartup(MAKEWORD(2, 2), &wsa) != 0) {
 		cout << "Initialization failed." << endl;
 		return -1;
@@ -34,13 +35,15 @@ int main() {
 	sadr.sin_family = AF_INET;
 	sadr.sin_port = htons(PORT);
 	sadr.sin_addr.S_un.S_addr = inet_addr(SERVER_ID);
+	//sadr.sin_addr.S_un.S_addr = inet_pton(SERVER_ID);
 	int nAddrlen = sizeof(sadr);
 	while (true) {
 		cout << "SENDING..." << endl;
 		cout << "Please input the filename: " << endl;
 		cin >> fileName;
+		errno_t err;
 		FILE* fp;
-		if (!(fp = fopen(fileName, "rb"))) {
+		if ((err = fopen_s(&fp, fileName, "rb")) != 0) {
 			cout << "Fail to open file." << endl;
 			continue;
 		}

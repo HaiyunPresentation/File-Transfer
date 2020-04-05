@@ -1,16 +1,15 @@
-
-#include<iostream>
-#include<WinSock2.h>
-#include<winsock.h>
+#include <iostream>
+#include <WinSock2.h>
+#include <winsock.h>
 #pragma comment(lib,"ws2_32.lib")
 #define BUF_SIZE 1024
-#define FILE_LENGHT 20
+#define FILENAME_LEN 1024
 #define PORT 5000
 using namespace std;
 
 char sendBuff[BUF_SIZE];
 char recvBuff[BUF_SIZE];
-char fileName[FILE_LENGHT];
+char fileName[FILENAME_LEN];
 
 int main() {
 	WSADATA wsa;
@@ -35,11 +34,12 @@ int main() {
 	while (true) {
 		cout << "RECEIVING..." << endl;
 		//接收文件名
+		memset(fileName, 0, sizeof(fileName));
 		int ret = recvfrom(server, fileName, BUF_SIZE, 0, (sockaddr*)&remote_addr, &nAddrlen);
 		cout << "Filename: " << fileName << endl;
 		errno_t err;
 		FILE* fp;
-		if ((err = fopen_s(&fp, fileName, "wb")) < 0) {
+		if ((err = fopen_s(&fp, fileName, "wb")) != 0) {
 			cout << "Create failed." << endl;
 			return -1;
 		}
