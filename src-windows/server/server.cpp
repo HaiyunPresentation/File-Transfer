@@ -1,17 +1,20 @@
+#include <iostream>
+#include <WinSock2.h>
+#include <winsock.h>
 
-#include<iostream>
-#include<WinSock2.h>
-#include<winsock.h>
+
 #pragma comment(lib,"ws2_32.lib")
 #define LENGTH_OF_LISTEN_QUEUE 10 
 #define BUFFER_SIZE 1024
-#define FILE_LENGHT 20
+#define FILE_LENGTH 20
 #define PORT 5000
+
+
 using namespace std;
 
 char sendBuff[BUFFER_SIZE];
 char recvBuff[BUFFER_SIZE];
-char fileName[FILE_LENGHT];
+char fileName[FILE_LENGTH];
 
 int main() {
 	WSADATA wsa;
@@ -52,20 +55,40 @@ int main() {
 		}
 		else
 			cout << "Successfully accept" << endl;
-		int ret = recv(sClient, fileName, FILE_LENGHT, 0);
+		int ret = recv(sClient, fileName, FILE_LENGTH, 0);
 		cout << "Filename: " << fileName << endl;
 		//errno_t err;
+
 		FILE* fp;
+
 		if (!(fp = fopen(fileName, "wb"))) {
-			cout << "Create failed." << endl;
-			return -1;
+			// 创建文件夹
+			char command[1030] = "mkdir ";
+			int index = 0, slashIndex = -1;
+			for (; index < sizeof(fileName); index++)
+			{
+				if (fileName[index] == '/') fileName[index] = '\\';
+				if (fileName[index] == '\\') slashIndex = index;
+			}
+			if (slashIndex != -1)
+			{
+				strncpy(command + 6, fileName,slashIndex);
+				system(command);
+				fp = fopen(fileName, "wb");
+			}
+			if (!fp)
+			{
+				cout << "Create failed." << endl;
+				continue;
+			}
+
 		}
 		char sendInfo[5] = "OK";
 		send(sClient, sendInfo, 5, 0);
 		int length;
 		while (length = recv(sClient, recvBuff, BUFFER_SIZE, 0) > 0) {
 			//接收结束信息
-			if (!strcmp(recvBuff, "end")){
+			if (!strcmp(recvBuff, "end")) {
 				cout << "Successfully received" << endl;
 				break;
 			}

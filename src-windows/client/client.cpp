@@ -1,9 +1,9 @@
-#include<iostream>
-#include<WinSock2.h>
-#include<winsock.h>
-#include<Windows.h>
-#include<string>
-#include<cstring>
+#include <iostream>
+#include <WinSock2.h>
+#include <winsock.h>
+#include <Windows.h>
+#include <string>
+#include <cstring>
 #include <fstream>
 #include <io.h>
 #pragma comment(lib,"ws2_32.lib")
@@ -11,6 +11,8 @@
 #define SERVER_ID "127.0.0.1"
 #define FILE_LENGTH 20
 #define PORT 5000
+
+
 using namespace std;
 char sendBuff[BUFFER_SIZE];
 char recvBuff[BUFFER_SIZE];
@@ -18,7 +20,7 @@ char fileName[FILE_LENGTH];
 
 int main() {
 	WSADATA wsa;
-	//使用2.2版本的soket
+	//使用2.2版本的socket
 	if (WSAStartup(MAKEWORD(2, 2), &wsa) != 0) {
 		cout << "Initialization failed." << endl;
 		return -1;
@@ -46,15 +48,15 @@ int main() {
 		}
 		if (connect(client_socket, (sockaddr*)&server_addr, sizeof(server_addr)) == SOCKET_ERROR)
 		{
-			cout << "connect error !" << endl;
+			cout << "Connect error !" << endl;
 			return -1;
 		}
 		if (send(client_socket, fileName, strlen(fileName)+1, 0) < 0) {
 			cout << "fileName send failed!" << endl;
-			return -1;
+			continue;
 		}
 
-		int ret = recv(client_socket, recvBuff	, BUFSIZ, 0);
+		int ret = recv(client_socket, recvBuff, BUFSIZ, 0);
 		int length;
 		while ((length = fread(sendBuff, 1, BUFFER_SIZE, fp)) > 0) {
 
@@ -67,7 +69,7 @@ int main() {
 		//传送文件发送结束信息
 		char end_flag[10] = "end";
 		ret = send(client_socket, end_flag, 10, 0);
-		cout << "successfully sent!" << endl;
+		cout << "Successfully sent!" << endl;
 		fclose(fp);
 	}
 	closesocket(client_socket);
