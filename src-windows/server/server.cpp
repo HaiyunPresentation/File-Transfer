@@ -1,15 +1,17 @@
-#include <iostream>
-#include <WinSock2.h>
-#include <winsock.h>
+
+#include<iostream>
+#include<WinSock2.h>
+#include<winsock.h>
 #pragma comment(lib,"ws2_32.lib")
-#define BUF_SIZE 1024
-#define FILENAME_LEN 1024
+#define LENGTH_OF_LISTEN_QUEUE 10 
+#define BUFFER_SIZE 1024
+#define FILE_LENGHT 20
 #define PORT 5000
 using namespace std;
 
-char sendBuff[BUF_SIZE];
-char recvBuff[BUF_SIZE];
-char fileName[FILENAME_LEN];
+char sendBuff[BUFFER_SIZE];
+char recvBuff[BUFFER_SIZE];
+char fileName[FILE_LENGHT];
 
 int main() {
 	WSADATA wsa;
@@ -17,8 +19,8 @@ int main() {
 		cout << "Initialization failed." << endl;
 		return -1;
 	}
-	SOCKET server = socket(AF_INET, SOCK_DGRAM, IPPROTO_UDP);
-	if (server == -1) {
+	SOCKET server_socket = socket(AF_INET, SOCK_STREAM, IPPROTO_TCP);
+	if (server_socket == INVALID_SOCKET) {
 		cout << "Socket failed." << endl;
 		return -1;
 	}
@@ -27,26 +29,46 @@ int main() {
 	my_addr.sin_family = AF_INET;
 	my_addr.sin_port = htons(PORT);
 	my_addr.sin_addr.S_un.S_addr = INADDR_ANY;
-	if (::bind(server, (sockaddr*)&my_addr, sizeof(my_addr)) == SOCKET_ERROR) {
+
+	if (bind(server_socket, (sockaddr*)&my_addr, sizeof(my_addr)) == SOCKET_ERROR) {
 		cout << "Bind error!" << endl;
 		return -1;
 	}
+
+	if (listen(server_socket, LENGTH_OF_LISTEN_QUEUE) == SOCKET_ERROR)
+	{
+		cout << "listen error !" << endl;
+		return -1;
+	}
+	SOCKET sClient;
 	while (true) {
 		cout << "RECEIVING..." << endl;
 		//接收文件名
-		memset(fileName, 0, sizeof(fileName));
-		int ret = recvfrom(server, fileName, BUF_SIZE, 0, (sockaddr*)&remote_addr, &nAddrlen);
+		sClient = accept(server_socket, (SOCKADDR*)&remote_addr, &nAddrlen);
+		if (sClient == INVALID_SOCKET)
+		{
+			cout << "accept error !" << endl;
+			continue;
+		}
+		else
+			cout << "Successfully accept" << endl;
+		int ret = recv(sClient, fileName, FILE_LENGHT, 0);
 		cout << "Filename: " << fileName << endl;
-		errno_t err;
+		//errno_t err;
 		FILE* fp;
-		if ((err = fopen_s(&fp, fileName, "wb")) != 0) {
+		if (!(fp = fopen(fileName, "wb"))) {
 			cout << "Create failed." << endl;
 			return -1;
 		}
+		char sendInfo[5] = "OK";
+		send(sClient, sendInfo, 5, 0);
 		int length;
-		while ((length = recvfrom(server, recvBuff, BUF_SIZE, 0, (sockaddr*)&remote_addr, &nAddrlen))) {
-			if (!strcmp(recvBuff, "end"))//接收结束信息
+		while (length = recv(sClient, recvBuff, BUFFER_SIZE, 0) > 0) {
+			//接收结束信息
+			if (!strcmp(recvBuff, "end")){
+				cout << "Successfully received" << endl;
 				break;
+			}
 			if (length == 0) {
 				cout << "An error occurred while receiving." << endl;
 				return -1;
@@ -56,11 +78,11 @@ int main() {
 				cout << "Write failed." << endl;
 				return -1;
 			}
-			sendto(server, "success", sizeof("success") + 1, 0, (SOCKADDR*)&remote_addr, sizeof(remote_addr));
+			send(sClient, sendInfo, 5, 0);
 		}
 		fclose(fp);
 	}
-	closesocket(server);
+	closesocket(server_socket);
 	WSACleanup();
 	return 0;
 }
