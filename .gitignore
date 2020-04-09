@@ -1,1 +1,4 @@
 /src-windows/Debug
+/src-windows/.vs
+/src-windows/client/x64
+/src-windows/server/x64
